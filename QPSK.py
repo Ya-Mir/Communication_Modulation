@@ -8,6 +8,8 @@ import multiprocessing
 import sys
 import bitarray
 import cmath
+import numpy as np
+import csv
 
 from scipy.fftpack import fft
 from numpy import pi
@@ -17,6 +19,7 @@ from numpy import cos
 from numpy import zeros
 from numpy import r_
 from  scipy.io.wavfile import read as wavread
+
 
 # Used for symbol creation. Returns a decimal number from a 2 bit input
 def GetQpskSymbol(bit1:bool, bit2:bool):
@@ -47,6 +50,7 @@ def QpskSymbolMapper(symbols:int,amplitude_I, amplitude_Q,noise1=0, noise2=0,  p
 #-------------------------------------#
 #---------- Configuration ------------#
 #-------------------------------------#
+np.set_printoptions(linewidth=2000) 
 fs = 44100                  # sampling rate
 baud = 900                  # symbol rate
 Nbits = 4000                # number of bits
@@ -57,7 +61,7 @@ t = r_[0.0:N]/fs            # time points
 f = r_[0:N/2.0]/N*fs        # Frequency Points
 
 # Limit for representation of time domain signals for better visibility. 
-symbolsToShow = 20
+symbolsToShow = 10
 timeDomainVisibleLimit = np.minimum(Nbits/baud,symbolsToShow/baud)     
 
 #----------------------------#
@@ -88,7 +92,9 @@ if(inputBits.size%2 == 0):
 
     #Summation befor transmission
     QPSK_signal = I_signal_modulated + Q_signal_modulated
-
+    with open(r"WAVEGEN.csv", "w") as file:
+        for  line in QPSK_signal:
+            file.write('{:8f}\n'.format(line))
     #---------- Preperation QPSK Constellation Diagram ------------#
     dataSymbols = np.array([[GetQpskSymbol(I_bits[x],Q_bits[x])] for x in range(0,I_bits.size)])
     
@@ -187,6 +193,7 @@ if(inputBits.size%2 == 0):
     axis[4].grid(linestyle='dotted')
 
     axis[5].plot(t,QPSK_signal, color='C4')
+    print(QPSK_signal)
     axis[5].set_title('QPSK Signal Modulated (Source Code/ Block Diagram: "QPSK_signal")')
     axis[5].set_xlabel('Time [s]')
     axis[5].set_xlim(0,timeDomainVisibleLimit)
